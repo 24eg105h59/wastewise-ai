@@ -47,9 +47,9 @@ export const register = async (req: Request, res: Response) => {
     );
 
     res.status(201).json({ token, user: { id: result.user.id, name: result.user.name, email: result.user.email, role: result.user.role } });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Server error' });
+  } catch (error: any) {
+    console.error('Registration error:', error);
+    res.status(500).json({ error: error?.message || 'Server error' });
   }
 };
 
@@ -74,9 +74,9 @@ export const login = async (req: Request, res: Response) => {
     );
 
     res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Server error' });
+  } catch (error: any) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: error?.message || 'Server error' });
   }
 };
 
