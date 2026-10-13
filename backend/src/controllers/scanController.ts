@@ -41,3 +41,12 @@ export const analyzeImage = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to analyze image' });
   }
 };
+
+export const getAiHealth = async (req: Request, res: Response) => {
+  try {
+    const health = await aiService.checkHealth();
+    res.json(health);
+  } catch (error: any) {
+    res.status(500).json({ status: 'error', message: error?.message });
+  }
+};

@@ -64,6 +64,8 @@ app.get(['/api/db-check', '/db-check'], async (req, res) => {
     res.json({
       status: 'connected',
       hasDatabaseUrl: hasDbUrl,
+      hasGeminiKey: !!(process.env.GEMINI_API_KEY),
+      aiProvider: 'Google Gemini',
       userCount,
       adminEmail: 'admin@hdbakers.com',
       adminPassword: 'demo123'
