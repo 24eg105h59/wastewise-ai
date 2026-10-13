@@ -35,12 +35,12 @@ const publicDir = getPublicDir();
 app.use(express.static(publicDir));
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({ status: 'ok', service: 'FoodGuard AI API' });
 });
 
 // Database connectivity check endpoint
-app.get('/api/db-check', async (req, res) => {
+app.get(['/api/db-check', '/db-check'], async (req, res) => {
   try {
     const hasDbUrl = !!process.env.DATABASE_URL;
     const userCount = await prisma.user.count();
@@ -64,13 +64,17 @@ import scanRoutes from './routes/scanRoutes';
 import productRoutes from './routes/productRoutes';
 import taskRoutes from './routes/taskRoutes';
 
-app.use('/api/auth', authRoutes);
-app.use('/api/scans', scanRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/tasks', taskRoutes);
+// Mount API routes under both /api/* and root prefix (for Vercel dynamic route compatibility)
+app.use(['/api/auth', '/auth'], authRoutes);
+app.use(['/api/scans', '/scans'], scanRoutes);
+app.use(['/api/products', '/products'], productRoutes);
+app.use(['/api/tasks', '/tasks'], taskRoutes);
 
 // For all other routes, serve React frontend index.html for client-side routing
 app.use((req, res) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: `Endpoint ${req.method} ${req.path} not found` });
+  }
   const indexPath = path.join(publicDir, 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
