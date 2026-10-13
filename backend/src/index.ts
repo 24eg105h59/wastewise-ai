@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 import { PrismaClient } from '@prisma/client';
 
 dotenv.config();
@@ -13,22 +15,26 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Root status endpoint
-app.get('/', (req, res) => {
-  res.json({
-    status: 'ok',
-    service: 'WasteWise AI API',
-    endpoints: {
-      health: '/api/health',
-      auth: '/api/auth',
-      products: '/api/products',
-      scans: '/api/scans',
-      tasks: '/api/tasks'
-    }
-  });
-});
+// Determine static public directory
+const getPublicDir = () => {
+  const candidates = [
+    path.join(__dirname, '../public'),
+    path.join(process.cwd(), 'public'),
+    path.join(__dirname, 'public'),
+    path.join(__dirname, '../../public')
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return p;
+  }
+  return path.join(process.cwd(), 'public');
+};
 
-// Basic health check endpoint
+const publicDir = getPublicDir();
+
+// Serve static assets from public directory
+app.use(express.static(publicDir));
+
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'FoodGuard AI API' });
 });
@@ -42,6 +48,20 @@ app.use('/api/auth', authRoutes);
 app.use('/api/scans', scanRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/tasks', taskRoutes);
+
+// For all other routes, serve React frontend index.html for client-side routing
+app.use((req, res) => {
+  const indexPath = path.join(publicDir, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.json({
+      status: 'ok',
+      service: 'WasteWise AI API',
+      message: 'API is running. Access endpoints under /api/*'
+    });
+  }
+});
 
 if (!process.env.VERCEL) {
   app.listen(PORT, () => {
