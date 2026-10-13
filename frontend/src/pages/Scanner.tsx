@@ -44,18 +44,20 @@ const Scanner = () => {
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const fileName = file.name;
       const reader = new FileReader();
       reader.onload = async (e) => {
         const rawUrl = e.target?.result as string;
         const optimizedUrl = await resizeImage(rawUrl);
         setImage(optimizedUrl);
-        simulateAnalysis(optimizedUrl);
+        simulateAnalysis(optimizedUrl, fileName);
       };
-      reader.readAsDataURL(e.target.files[0]);
+      reader.readAsDataURL(file);
     }
   };
 
-  const simulateAnalysis = async (imgDataUrl: string) => {
+  const simulateAnalysis = async (imgDataUrl: string, fileName?: string) => {
     setAnalyzing(true);
     try {
       const token = localStorage.getItem('token');
@@ -65,7 +67,7 @@ const Scanner = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ imageUrl: imgDataUrl })
+        body: JSON.stringify({ imageUrl: imgDataUrl, fileName })
       });
       const data = await res.json();
       if (data.analysis) {

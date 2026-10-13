@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 export const analyzeImage = async (req: Request, res: Response) => {
   try {
-    const { imageUrl } = req.body;
+    const { imageUrl, fileName } = req.body;
     
     if (!req.user) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -16,10 +16,10 @@ export const analyzeImage = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Image URL is required' });
     }
 
-    console.log("Analyze image called with URL length:", imageUrl.length);
+    console.log("Analyze image called with URL length:", imageUrl.length, "fileName:", fileName);
 
     // Call AI Service
-    const analysisResult = await aiService.analyzeFoodImage(imageUrl);
+    const analysisResult = await aiService.analyzeFoodImage(imageUrl, fileName);
 
     // Save scan record
     const scan = await prisma.scan.create({
