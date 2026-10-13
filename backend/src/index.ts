@@ -39,6 +39,26 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', service: 'FoodGuard AI API' });
 });
 
+// Database connectivity check endpoint
+app.get('/api/db-check', async (req, res) => {
+  try {
+    const hasDbUrl = !!process.env.DATABASE_URL;
+    const userCount = await prisma.user.count();
+    res.json({
+      status: 'connected',
+      hasDatabaseUrl: hasDbUrl,
+      userCount
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      status: 'error',
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      message: err?.message || 'Database error',
+      code: err?.code
+    });
+  }
+});
+
 import authRoutes from './routes/authRoutes';
 import scanRoutes from './routes/scanRoutes';
 import productRoutes from './routes/productRoutes';
