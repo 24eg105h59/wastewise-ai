@@ -28,6 +28,10 @@ app.use('/api/scans', scanRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/tasks', taskRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+export default app;

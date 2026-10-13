@@ -23,11 +23,17 @@ export interface AIAnalysisResult {
 }
 
 export class AIService {
-  private ai: GoogleGenAI;
+  private ai: GoogleGenAI | null = null;
 
-  constructor() {
-    // Requires GEMINI_API_KEY in .env
-    this.ai = new GoogleGenAI();
+  private getClient(): GoogleGenAI {
+    if (!this.ai) {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("GEMINI_API_KEY is missing in environment variables.");
+      }
+      this.ai = new GoogleGenAI({ apiKey });
+    }
+    return this.ai;
   }
 
   async analyzeFoodImage(base64Image: string): Promise<AIAnalysisResult> {
@@ -76,9 +82,10 @@ export class AIService {
         }
       `;
 
-      console.log("Calling Gemini API with model: gemini-3.7-flash and mimeType:", mimeType);
-      const response = await this.ai.models.generateContent({
-        model: 'gemini-3.7-flash',
+      const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+      console.log(`Calling Gemini API with model: ${model} and mimeType:`, mimeType);
+      const response = await this.getClient().models.generateContent({
+        model,
         contents: [
           prompt,
           {
