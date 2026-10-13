@@ -34,6 +34,8 @@ const publicDir = getPublicDir();
 // Serve static assets from public directory
 app.use(express.static(publicDir));
 
+import { seedDemoData } from './utils/seedDatabase';
+
 // Health check endpoint
 app.get(['/api/health', '/health'], (req, res) => {
   res.json({ status: 'ok', service: 'FoodGuard AI API' });
@@ -43,11 +45,28 @@ app.get(['/api/health', '/health'], (req, res) => {
 app.get(['/api/db-check', '/db-check'], async (req, res) => {
   try {
     const hasDbUrl = !!process.env.DATABASE_URL;
-    const userCount = await prisma.user.count();
+    let userCount = 0;
+    try {
+      userCount = await prisma.user.count();
+      if (userCount === 0) {
+        await seedDemoData(prisma);
+        userCount = await prisma.user.count();
+      }
+    } catch (dbErr: any) {
+      return res.status(500).json({
+        status: 'error',
+        hasDatabaseUrl: hasDbUrl,
+        message: dbErr?.message || 'Database query error',
+        code: dbErr?.code
+      });
+    }
+
     res.json({
       status: 'connected',
       hasDatabaseUrl: hasDbUrl,
-      userCount
+      userCount,
+      adminEmail: 'admin@hdbakers.com',
+      adminPassword: 'demo123'
     });
   } catch (err: any) {
     res.status(500).json({
@@ -55,6 +74,24 @@ app.get(['/api/db-check', '/db-check'], async (req, res) => {
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       message: err?.message || 'Database error',
       code: err?.code
+    });
+  }
+});
+
+// Explicit seed trigger endpoint
+app.all(['/api/seed', '/seed'], async (req, res) => {
+  try {
+    const result = await seedDemoData(prisma);
+    res.json({
+      status: 'seed_complete',
+      result,
+      adminEmail: 'admin@hdbakers.com',
+      adminPassword: 'demo123'
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      status: 'seed_error',
+      message: err?.message
     });
   }
 });

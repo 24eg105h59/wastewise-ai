@@ -53,18 +53,28 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
+import { seedDemoData } from '../utils/seedDatabase';
+
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    let user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      // If user is admin@hdbakers.com or database is empty, attempt auto-seeding
+      if (email === 'admin@hdbakers.com' || (await prisma.user.count()) === 0) {
+        await seedDemoData(prisma);
+        user = await prisma.user.findUnique({ where: { email } });
+      }
+    }
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials. User not found.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Invalid credentials. Password incorrect.' });
     }
 
     const token = jwt.sign(
