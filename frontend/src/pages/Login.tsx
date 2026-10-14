@@ -49,11 +49,11 @@ const Login = () => {
   const applyDemoCredentials = (role: 'ADMIN' | 'STAFF') => {
     setSelectedPreset(role);
     if (role === 'ADMIN') {
-      setEmail('admin@wastewise.com');
-      setPassword('admin123');
+      setEmail('admin@hdbakers.com');
+      setPassword('demo123');
     } else {
-      setEmail('staff@wastewise.com');
-      setPassword('staff123');
+      setEmail('staff@hdbakers.com');
+      setPassword('demo123');
     }
     setError('');
   };
@@ -181,7 +181,7 @@ const Login = () => {
                 <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
                   <ChefHat className="w-3.5 h-3.5" /> Head Chef (Admin)
                 </div>
-                <span className="text-[11px] text-slate-400 mt-0.5 truncate w-full">admin@wastewise.com</span>
+                <span className="text-[11px] text-slate-400 mt-0.5 truncate w-full">admin@hdbakers.com</span>
               </button>
 
               <button
@@ -196,7 +196,7 @@ const Login = () => {
                 <div className="flex items-center gap-1.5 text-xs font-bold text-orange-300">
                   <Utensils className="w-3.5 h-3.5" /> Sous Chef (Staff)
                 </div>
-                <span className="text-[11px] text-slate-400 mt-0.5 truncate w-full">staff@wastewise.com</span>
+                <span className="text-[11px] text-slate-400 mt-0.5 truncate w-full">staff@hdbakers.com</span>
               </button>
             </div>
           </div>
@@ -236,7 +236,7 @@ const Login = () => {
                     Kitchen Passcode
                   </label>
                   <span className="text-xs text-amber-400/80 hover:text-amber-300 cursor-pointer">
-                    Demo: admin123
+                    Demo: demo123
                   </span>
                 </div>
                 <div className="relative">
