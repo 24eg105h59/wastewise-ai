@@ -71,7 +71,6 @@ function App() {
               <Route path="/admin/alerts" element={<AdminDashboard />} /> {/* Placeholder */}
               <Route path="/admin/staff" element={<AdminStaff />} />
               <Route path="/admin/reports" element={<AdminDashboard />} /> {/* Placeholder */}
-              <Route path="/admin/audit" element={<AdminDashboard />} /> {/* Placeholder */}
               <Route path="/admin/settings" element={<AdminDashboard />} /> {/* Placeholder */}
               <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
             </Route>

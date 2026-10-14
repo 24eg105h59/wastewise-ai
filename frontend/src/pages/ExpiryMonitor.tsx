@@ -1,26 +1,29 @@
-import React from 'react';
-import { AlertTriangle, Clock, CalendarX, CalendarCheck, Zap, AlertCircle, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { AlertTriangle, Clock, CalendarX, CalendarCheck, Zap, AlertCircle, RefreshCw, Send, CheckCircle2, Loader2 } from 'lucide-react';
 
 const ExpiryMonitor = () => {
-  const [inventory, setInventory] = React.useState<any[]>([]);
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [pushing, setPushing] = useState(false);
+  const [pushSuccess, setPushSuccess] = useState<string | null>(null);
 
-  React.useEffect(() => {
-    const fetchInventory = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/products', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          // Sort by expiry
-          data.sort((a: any, b: any) => new Date(a.expiryDate || 0).getTime() - new Date(b.expiryDate || 0).getTime());
-          setInventory(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch inventory', err);
+  const fetchInventory = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/products', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Sort by expiry
+        data.sort((a: any, b: any) => new Date(a.expiryDate || 0).getTime() - new Date(b.expiryDate || 0).getTime());
+        setInventory(data);
       }
-    };
+    } catch (err) {
+      console.error('Failed to fetch inventory', err);
+    }
+  };
+
+  useEffect(() => {
     fetchInventory();
   }, []);
 
@@ -43,6 +46,44 @@ const ExpiryMonitor = () => {
     .sort((a, b) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime())
     .slice(0, 5);
 
+  const handlePushUpdateToStaff = async () => {
+    if (useFirstQueue.length === 0) {
+      alert('No items currently in the Use First queue to push.');
+      return;
+    }
+    setPushing(true);
+    setPushSuccess(null);
+    try {
+      const token = localStorage.getItem('token');
+      const urgentItems = useFirstQueue.slice(0, 4).map(i => `${i.name} (${i.quantity} ${i.unit || 'units'})`).join(', ');
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: 'FEFO Alert: Expiring Ingredients Priority Batch',
+          description: `Urgent stock requiring priority kitchen consumption today: ${urgentItems}. Ensure First-Expired-First-Out rotation across all prep stations.`,
+          priority: 'HIGH',
+          dueDate: new Date().toISOString()
+        })
+      });
+      if (res.ok) {
+        setPushSuccess('Priority FEFO task successfully broadcast to Staff Task Board!');
+        setTimeout(() => setPushSuccess(null), 5000);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || 'Failed to dispatch tasks to staff.');
+      }
+    } catch (err) {
+      console.error('Failed to push update to staff:', err);
+      alert('Network error while dispatching update to staff.');
+    } finally {
+      setPushing(false);
+    }
+  };
+
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
@@ -52,7 +93,10 @@ const ExpiryMonitor = () => {
           </h1>
           <p className="text-gray-500 mt-2 text-lg">Monitor product lifecycles and direct the kitchen's FEFO usage.</p>
         </div>
-        <button className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+        <button 
+          onClick={fetchInventory}
+          className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-sm"
+        >
           <RefreshCw size={18} /> Refresh Data
         </button>
       </div>
@@ -239,8 +283,29 @@ const ExpiryMonitor = () => {
                 })}
               </div>
               
-              <button className="w-full mt-6 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors shadow-md shadow-blue-600/20">
-                Push Update to Staff
+              {pushSuccess && (
+                <div className="mt-4 p-3 bg-green-100 border border-green-300 text-green-800 rounded-xl text-xs font-semibold flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-green-600 flex-shrink-0" />
+                  <span>{pushSuccess}</span>
+                </div>
+              )}
+
+              <button 
+                onClick={handlePushUpdateToStaff}
+                disabled={pushing}
+                className="w-full mt-4 bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2"
+              >
+                {pushing ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    <span>Pushing to Staff...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send size={18} />
+                    <span>Push Update to Staff</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

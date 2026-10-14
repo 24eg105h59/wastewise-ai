@@ -7,7 +7,7 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/', getTasks);
-router.post('/', requireRole(['ADMIN']), createTask);
+router.post('/', requireRole(['ADMIN', 'STAFF']), createTask);
 router.put('/:id', updateTask);
 router.delete('/:id', requireRole(['ADMIN']), deleteTask);
 

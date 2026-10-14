@@ -102,12 +102,14 @@ import authRoutes from './routes/authRoutes';
 import scanRoutes from './routes/scanRoutes';
 import productRoutes from './routes/productRoutes';
 import taskRoutes from './routes/taskRoutes';
+import wasteRoutes from './routes/wasteRoutes';
 
 // Mount API routes under both /api/* and root prefix (for Vercel dynamic route compatibility)
 app.use(['/api/auth', '/auth'], authRoutes);
 app.use(['/api/scans', '/scans'], scanRoutes);
 app.use(['/api/products', '/products'], productRoutes);
 app.use(['/api/tasks', '/tasks'], taskRoutes);
+app.use(['/api/waste', '/waste'], wasteRoutes);
 
 // For all other routes, serve React frontend index.html for client-side routing
 app.use((req, res) => {

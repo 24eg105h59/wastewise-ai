@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Download } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { downloadAuditReport } from '../utils/reportGenerator';
 
 const data = [
   { name: 'Jan', waste: 4000, expected: 2400 },
@@ -73,7 +74,7 @@ const Analytics = () => {
           </h1>
           <p className="text-gray-500 mt-2">Insights into your inventory, food safety, and waste trends.</p>
         </div>
-        <button onClick={() => alert('Report download started.')} className="flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded-lg font-medium text-gray-700 shadow-sm hover:bg-gray-50">
+        <button onClick={() => downloadAuditReport(inventory)} className="flex items-center gap-2 bg-white border border-gray-300 px-4 py-2 rounded-lg font-medium text-gray-700 shadow-sm hover:bg-gray-50">
           <Download size={18} /> Export Report
         </button>
       </div>

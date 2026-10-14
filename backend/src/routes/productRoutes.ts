@@ -10,8 +10,8 @@ router.use(authenticate);
 router.get('/', requireRole(['ADMIN', 'STAFF']), getProducts);
 router.put('/:id', requireRole(['ADMIN', 'STAFF']), updateProduct);
 
-// Only ADMIN can create or delete inventory
-router.post('/', requireRole(['ADMIN']), createProduct);
+// STAFF and ADMIN can create inventory
+router.post('/', requireRole(['ADMIN', 'STAFF']), createProduct);
 router.delete('/:id', requireRole(['ADMIN']), deleteProduct);
 
 export default router;

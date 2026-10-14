@@ -2,6 +2,7 @@ import React from 'react';
 import { AlertCircle, ShieldAlert, AlertTriangle, TrendingDown, Package, Users, PackageMinus, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { downloadAuditReport } from '../utils/reportGenerator';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -59,7 +60,10 @@ const AdminDashboard = () => {
           <button onClick={() => navigate('/admin/scanner')} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors">
             Scan Document
           </button>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
+          <button 
+            onClick={() => downloadAuditReport(inventory, [], 'HD Bakers')}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm"
+          >
             <TrendingUp size={18} /> Download Report
           </button>
         </div>

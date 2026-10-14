@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ScanLine, Package, AlertTriangle, ShieldAlert, Thermometer, Trash2, BarChart3, Bot, Settings, Users, CheckSquare, LogOut, Bell, FileText, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, ScanLine, Package, AlertTriangle, ShieldAlert, Thermometer, Trash2, BarChart3, Bot, Settings, Users, CheckSquare, LogOut, Bell, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const AdminSidebar = () => {
@@ -25,7 +25,6 @@ export const AdminSidebar = () => {
     { name: 'Alerts', path: '/admin/alerts', icon: Bell },
     { name: 'Staff', path: '/admin/staff', icon: Users },
     { name: 'Reports', path: '/admin/reports', icon: FileText },
-    { name: 'Audit Log', path: '/admin/audit', icon: ClipboardList },
     { name: 'Settings', path: '/admin/settings', icon: Settings },
   ];
 

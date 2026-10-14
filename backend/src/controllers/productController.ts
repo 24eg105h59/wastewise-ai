@@ -27,26 +27,85 @@ export const createProduct = async (req: Request, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { name, brand, categoryId, quantity, unit, expiryDate, riskLevel, storageLocationId } = req.body;
+    const {
+      name,
+      brand,
+      category,
+      categoryId,
+      categoryName,
+      quantity,
+      unit,
+      price,
+      expiryDate,
+      manufacturingDate,
+      riskLevel,
+      storageLocationId,
+      storageLocationName
+    } = req.body;
+
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({ error: 'Product name is required' });
+    }
+
+    let finalCategoryId = categoryId || null;
+    const catName = categoryName || category;
+    if (!finalCategoryId && catName) {
+      let existingCat = await prisma.category.findFirst({
+        where: { businessId: req.user.businessId, name: catName }
+      });
+      if (!existingCat) {
+        existingCat = await prisma.category.create({
+          data: { businessId: req.user.businessId, name: catName }
+        });
+      }
+      finalCategoryId = existingCat.id;
+    }
+
+    let finalStorageId = storageLocationId || null;
+    const storeName = storageLocationName;
+    if (!finalStorageId && storeName) {
+      let existingStorage = await prisma.storageLocation.findFirst({
+        where: { businessId: req.user.businessId, name: storeName }
+      });
+      if (!existingStorage) {
+        existingStorage = await prisma.storageLocation.create({
+          data: {
+            businessId: req.user.businessId,
+            name: storeName,
+            type: storeName.toLowerCase().includes('freezer') ? 'Freezer' : storeName.toLowerCase().includes('fridge') ? 'Fridge' : 'Shelf'
+          }
+        });
+      }
+      finalStorageId = existingStorage.id;
+    }
+
+    const parsedQty = parseFloat(quantity) || 1;
+    const parsedPrice = price !== undefined && price !== '' ? parseFloat(price) : 150;
 
     const product = await prisma.product.create({
       data: {
-        name,
-        brand,
-        categoryId,
-        quantity,
-        unit,
+        name: name.trim(),
+        brand: brand ? String(brand).trim() : 'Unknown',
+        categoryId: finalCategoryId,
+        quantity: parsedQty,
+        unit: unit || 'units',
+        price: parsedPrice,
         expiryDate: expiryDate ? new Date(expiryDate) : null,
+        manufacturingDate: manufacturingDate ? new Date(manufacturingDate) : null,
         riskLevel: riskLevel || 'LOW',
-        storageLocationId,
+        storageLocationId: finalStorageId,
         businessId: req.user.businessId
+      },
+      include: {
+        category: true,
+        storageLocation: true
       }
     });
 
     res.status(201).json(product);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to create product' });
+  } catch (error: any) {
+    console.error('Failed to create product:', error);
+    res.status(500).json({ error: error?.message || 'Failed to create product' });
   }
 };
 
