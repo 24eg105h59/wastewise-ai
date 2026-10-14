@@ -1,139 +1,224 @@
-import React, { useState } from 'react';
-import { Bot, Send, User } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Bot, Send, Sparkles, Loader2, RefreshCw } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+
+interface Message {
+  id: string | number;
+  sender: 'ai' | 'user';
+  text: string;
+  timestamp?: string;
+}
 
 const GuardAI = () => {
-  const [messages, setMessages] = useState([
+  const { user } = useAuth();
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       sender: 'ai',
-      text: "Hello! I'm GuardAI, your food safety and inventory assistant. How can I help you today?"
+      text: `Hello ${user?.name?.split(' ')[0] || 'there'}! 👋 I'm **Guide AI (GuardAI)**, powered by Google Gemini.\n\nI can chat with you like a human partner, provide live inventory briefings, answer food safety questions, or solve any operational problem at HD Bakers.\n\nWhat would you like to discuss today? Try saying *"Hi, what's new?"*`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
   const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const [inventory, setInventory] = React.useState<any[]>([]);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-  React.useEffect(() => {
-    const fetchInventory = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/products', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setInventory(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch inventory', err);
-      }
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
+
+  const handleSend = async (textToSend?: string) => {
+    const text = (textToSend || input).trim();
+    if (!text || isTyping) return;
+
+    const userMessage: Message = {
+      id: Date.now(),
+      sender: 'user',
+      text,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-    fetchInventory();
-  }, []);
 
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    const userMessage = { id: Date.now(), sender: 'user', text: input };
-    setMessages([...messages, userMessage]);
+    const newHistory = [...messages, userMessage];
+    setMessages(newHistory);
     setInput('');
+    setIsTyping(true);
 
-    // Simulate AI response based on real inventory data
-    setTimeout(() => {
-      const now = new Date();
-      const getDaysDiff = (dateStr: string) => {
-        if (!dateStr) return 999;
-        const d = new Date(dateStr);
-        return (d.getTime() - now.getTime()) / (1000 * 3600 * 24);
-      };
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/assistant/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          messages: newHistory.map(m => ({
+            role: m.sender === 'ai' ? 'assistant' : 'user',
+            content: m.text
+          }))
+        })
+      });
 
-      const expired = inventory.filter(i => getDaysDiff(i.expiryDate) < 0);
-      const urgent = inventory.filter(i => { const d = getDaysDiff(i.expiryDate); return d >= 0 && d <= 3; });
-
-      let aiText = `I'm analyzing your inventory of ${inventory.length} items. `;
-      
-      if (urgent.length > 0) {
-        aiText += `I recommend inspecting the ${urgent[0].name} as it expires very soon.`;
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(prev => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'ai',
+            text: data.reply || "I'm right here with you! How else can I help?",
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
       } else {
-        aiText += "Everything looks safe and well-managed right now.";
+        const err = await res.json().catch(() => ({}));
+        setMessages(prev => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'ai',
+            text: `Connection issue (${err.error || 'Request failed'}). Let me know what else I can look into!`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
       }
-      
-      if (userMessage.text.toLowerCase().includes('waste') || userMessage.text.toLowerCase().includes('expired')) {
-        if (expired.length > 0) {
-          const wasteValue = expired.reduce((acc, curr) => acc + (curr.quantity * (curr.price || 150)), 0);
-          aiText = `You currently have ${expired.length} expired items in your inventory, with an estimated loss value of ₹${wasteValue}. Please review the Waste Tracking dashboard for details.`;
-        } else {
-          aiText = "Great news! You currently have 0 expired items in your inventory. Your waste is minimized.";
+    } catch (err) {
+      console.error('Chat error:', err);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          sender: 'ai',
+          text: "I couldn't reach the server. Please check your network connection.",
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
-      } else if (userMessage.text.toLowerCase().includes('expire') || userMessage.text.toLowerCase().includes('soon')) {
-        if (urgent.length > 0) {
-          const itemNames = urgent.slice(0, 3).map(i => i.name).join(', ');
-          aiText = `You have ${urgent.length} items expiring within the next 3 days. Priority items: ${itemNames}.`;
-        } else {
-          aiText = "You have no items expiring in the next 3 days.";
-        }
-      } else if (userMessage.text.toLowerCase().includes('high risk') || userMessage.text.toLowerCase().includes('risk')) {
-        const highRisk = inventory.filter(i => i.riskLevel === 'HIGH' || i.riskLevel === 'CRITICAL');
-        if (highRisk.length > 0) {
-          aiText = `I found ${highRisk.length} high-risk items requiring your attention, including ${highRisk[0].name}. Please check the Risk Center.`;
-        } else {
-          aiText = "There are no high or critical risk items currently logged.";
-        }
-      }
-
-      setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: aiText }]);
-    }, 1000);
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto h-[calc(100vh-40px)] flex flex-col">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-          <Bot className="text-primary" /> GuardAI Assistant
-        </h1>
-        <p className="text-gray-500 mt-2">Ask questions about your inventory, risk factors, and food safety.</p>
+    <div className="p-4 sm:p-8 max-w-5xl mx-auto h-[calc(100vh-40px)] flex flex-col">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <span className="p-2 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-xl shadow-md shadow-blue-500/20">
+              <Bot size={24} />
+            </span>
+            Guide AI Assistant
+          </h1>
+          <p className="text-gray-500 text-sm mt-1 flex items-center gap-1.5">
+            <Sparkles size={14} className="text-amber-500" /> Powered by Gemini conversational intelligence
+          </p>
+        </div>
+        <button
+          onClick={() => setMessages([{
+            id: 1,
+            sender: 'ai',
+            text: `Conversation restarted. Hello! What can I help you with today?`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }])}
+          className="text-xs font-semibold text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1.5 shadow-sm"
+        >
+          <RefreshCw size={13} /> Reset
+        </button>
       </div>
 
-      <div className="flex-1 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden">
-        <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-gray-50/50">
+      <div className="flex-1 bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col overflow-hidden">
+        <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-gray-50/60 custom-scrollbar">
           {messages.map((msg) => (
-            <div key={msg.id} className={`flex gap-4 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                msg.sender === 'ai' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700'
+            <div key={msg.id} className={`flex gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {msg.sender === 'ai' && (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-1">
+                  <Bot size={18} />
+                </div>
+              )}
+
+              <div className={`max-w-[85%] rounded-2xl px-5 py-3.5 shadow-sm text-sm ${
+                msg.sender === 'user'
+                  ? 'bg-blue-600 text-white rounded-tr-none'
+                  : 'bg-white border border-gray-200 text-gray-800 rounded-tl-none'
               }`}>
-                {msg.sender === 'ai' ? <Bot size={18} /> : <User size={18} />}
+                <div className="leading-relaxed whitespace-pre-wrap">
+                  {msg.text}
+                </div>
+                {msg.timestamp && (
+                  <div className={`text-[10px] mt-1.5 ${msg.sender === 'user' ? 'text-blue-200 text-right' : 'text-gray-400'}`}>
+                    {msg.timestamp}
+                  </div>
+                )}
               </div>
-              <div className={`max-w-[75%] p-4 rounded-xl shadow-sm ${
-                msg.sender === 'ai' ? 'bg-white border border-gray-200 text-gray-800' : 'bg-primary text-white'
-              }`}>
-                <p className="whitespace-pre-wrap">{msg.text}</p>
-              </div>
+
+              {msg.sender === 'user' && (
+                <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center shrink-0 shadow-sm mt-1 font-bold text-xs">
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+              )}
             </div>
           ))}
+
+          {isTyping && (
+            <div className="flex gap-3 justify-start items-center">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <Bot size={18} />
+              </div>
+              <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm text-xs text-gray-500 flex items-center gap-2">
+                <Loader2 size={15} className="animate-spin text-blue-600" />
+                <span>Guide AI is thinking...</span>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
         </div>
-        
-        <div className="p-4 bg-white border-t border-gray-200">
-          <form onSubmit={handleSend} className="relative">
-            <input 
-              type="text" 
-              placeholder="Ask GuardAI e.g. 'What expires this week?'"
-              className="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
+
+        <div className="p-3 sm:p-4 bg-white border-t border-gray-200">
+          <div className="flex gap-2 mb-3 overflow-x-auto custom-scrollbar pb-1">
+            <button
+              type="button"
+              onClick={() => handleSend("Hi, what's new today?")}
+              className="shrink-0 text-xs bg-blue-50 text-blue-700 font-bold px-3 py-1.5 rounded-full hover:bg-blue-100 border border-blue-200 transition-colors"
+            >
+              👋 "Hi, what's new today?"
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSend("What products are expiring soon?")}
+              className="shrink-0 text-xs bg-gray-100 text-gray-700 font-bold px-3 py-1.5 rounded-full hover:bg-gray-200 border border-gray-200 transition-colors"
+            >
+              ⏰ "What expires soon?"
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSend("How can we reduce inventory waste?")}
+              className="shrink-0 text-xs bg-gray-100 text-gray-700 font-bold px-3 py-1.5 rounded-full hover:bg-gray-200 border border-gray-200 transition-colors"
+            >
+              📉 "Reduce waste?"
+            </button>
+          </div>
+
+          <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="relative flex items-center">
+            <input
+              type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask Guide AI anything, or say hello..."
+              className="w-full pl-5 pr-14 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors text-sm"
+              disabled={isTyping}
             />
-            <button 
+            <button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-primary transition-colors"
+              disabled={!input.trim() || isTyping}
+              className="absolute right-2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-40 transition-colors shadow-sm"
             >
-              <Send size={20} />
+              {isTyping ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
             </button>
           </form>
-          <div className="flex gap-2 mt-3">
-            <span className="text-xs text-gray-500">Suggestions:</span>
-            <button className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded" onClick={() => setInput('What expires this week?')}>What expires this week?</button>
-            <button className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded" onClick={() => setInput('Show me high-risk items.')}>Show me high-risk items.</button>
-          </div>
         </div>
       </div>
     </div>

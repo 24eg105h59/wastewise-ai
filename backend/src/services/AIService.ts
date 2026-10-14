@@ -22,6 +22,23 @@ export interface AIAnalysisResult {
   recommendation: string;
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
+
+export interface BusinessContext {
+  businessName?: string;
+  userName?: string;
+  userRole?: string;
+  totalProducts?: number;
+  expiringSoonProducts?: string[];
+  expiredProducts?: string[];
+  activeProductsSummary?: string[];
+  pendingTasks?: string[];
+  totalWasteLoss?: number;
+}
+
 const DEFAULT_KEY_B64 = "QVEuQWI4Uk42S04xSnRJb0Z2M1FMQ3Qzb2V4dTk2MkpueUx5Z1hsZGo0Z21GRFZfYnhLWXc=";
 
 export class AIService {
@@ -223,6 +240,100 @@ export class AIService {
       warnings: [],
       recommendation: `Recommended to consume before ${fallbackDate} for optimal freshness.`
     };
+  }
+
+  async generateChatReply(
+    messages: ChatMessage[],
+    context: BusinessContext = {}
+  ): Promise<string> {
+    const bizName = context.businessName || 'HD Bakers';
+    const userName = context.userName || 'Admin';
+    const userRole = context.userRole || 'Staff';
+
+    const systemPrompt = `You are GuardAI (also known as Guide AI), the warm, highly intelligent, and friendly AI co-pilot and food safety operations partner for ${bizName} on WasteWise AI.
+
+CORE PERSONALITY & BEHAVIOR (GEMINI-STYLE):
+1. CHAT LIKE A REAL, FRIENDLY PERSON:
+   - Talk naturally, warmly, and helpfully.
+   - Reply warmly and politely to casual greetings like "hi", "hello", "hey", "how are you", "good morning", etc. Ask how their day is going.
+   - When asked "what's new?" or "what is happening?", proactively reference their real live business context below: tell them about their current stock, what needs immediate attention, expiring items, or any pending tasks in a conversational, uplifting way.
+   - Speak with empathy, clarity, and professionalism. Avoid robotic or dry boilerplate answers.
+
+2. PROBLEM SOLVING & OPERATIONAL MASTERY:
+   - Provide concrete, practical, expert advice for:
+     * Food safety standards, hygiene, and safe storage temperatures
+     * Shelf-life prolongation, First-Expired-First-Out (FEFO) rotations
+     * Culinary ingredient substitutions, baking recipes, and batch utilization
+     * Waste reduction strategies and spoilage prevention
+     * Staff task prioritization and shift handovers
+   - If a user has a problem (e.g. "our dough is too sticky", "how to store cut fruits?", "refrigerator temperature rose to 10C"), analyze the situation with empathy and provide actionable, step-by-step remedies.
+
+3. LIVE REAL-TIME BUSINESS CONTEXT:
+   - Business: ${bizName}
+   - User: ${userName} (${userRole})
+   - Total Monitored Products: ${context.totalProducts ?? 0}
+   - Products Expiring Soon (Urgent FEFO): ${context.expiringSoonProducts && context.expiringSoonProducts.length > 0 ? context.expiringSoonProducts.join(', ') : 'None! All stock is fresh.'}
+   - Expired Products (Need Immediate Disposal): ${context.expiredProducts && context.expiredProducts.length > 0 ? context.expiredProducts.join(', ') : 'None! Zero expired goods currently.'}
+   - Sample Active Stock: ${context.activeProductsSummary && context.activeProductsSummary.length > 0 ? context.activeProductsSummary.slice(0, 8).join('; ') : 'Various fresh ingredients and bakery items.'}
+   - Pending Staff Tasks: ${context.pendingTasks && context.pendingTasks.length > 0 ? context.pendingTasks.join('; ') : 'All tasks currently up to date.'}
+   - Total Waste Loss Recorded: ₹${(context.totalWasteLoss || 0).toLocaleString()}
+
+Always speak naturally and seamlessly incorporate this live context when relevant!`;
+
+    // Candidate models with fast fallback
+    const candidateModels = [
+      'gemini-3-flash-preview',
+      'gemini-3.7-flash',
+      'gemini-3.8-flash',
+      'gemini-3.1-flash-lite'
+    ];
+
+    // Format recent chat history
+    let conversationText = `${systemPrompt}\n\nCONVERSATION:\n`;
+    for (const msg of messages.slice(-10)) {
+      const speaker = msg.role === 'user' ? userName : 'GuardAI';
+      conversationText += `${speaker}: ${msg.content}\n`;
+    }
+    conversationText += `GuardAI:`;
+
+    for (const model of candidateModels) {
+      try {
+        console.log(`[AIService] Chat attempt with model: ${model}...`);
+        const response = await this.withTimeout(
+          this.getClient().models.generateContent({
+            model,
+            contents: conversationText
+          }),
+          12000
+        );
+        const reply = response.text?.trim();
+        if (reply) {
+          console.log(`[AIService] Chat reply generated successfully with ${model}`);
+          return reply;
+        }
+      } catch (err: any) {
+        console.warn(`[AIService] Chat model ${model} failed:`, err?.message || err);
+      }
+    }
+
+    // Dynamic, warm fallback if all remote models face temporary network/load spikes
+    const lastUserMsg = messages[messages.length - 1]?.content.toLowerCase() || '';
+    if (lastUserMsg.includes('hi') || lastUserMsg.includes('hello') || lastUserMsg.includes('hey')) {
+      return `Hello ${userName}! 👋 Great to see you today. Everything is running smoothly at ${bizName}. How are things in the kitchen, and what can I help you solve or check right now?`;
+    }
+    if (lastUserMsg.includes('what') && (lastUserMsg.includes('new') || lastUserMsg.includes('happening') || lastUserMsg.includes('update'))) {
+      const expiringMsg = context.expiringSoonProducts && context.expiringSoonProducts.length > 0 
+        ? `We have ${context.expiringSoonProducts.length} items to prioritize in FEFO: ${context.expiringSoonProducts.slice(0, 3).join(', ')}.`
+        : 'All active items are safely within their shelf-life.';
+      return `Here's your live update for **${bizName}**: Currently tracking **${context.totalProducts || 0} inventory items**. ${expiringMsg} Let me know if you need to plan a batch rotation or delegate prep tasks to staff!`;
+    }
+    if (lastUserMsg.includes('mold') || lastUserMsg.includes('bread') || lastUserMsg.includes('spoil')) {
+      return `To prevent bread mold in humid weather at **${bizName}**, here are proven culinary steps:\n\n1. **Cool Completely**: Never bag or wrap loaves while warm; residual condensation triggers mold spores within 24 hours.\n2. **Store in Paper or Linen**: Plastic bags trap humidity. Use breathable paper bags for crusty artisan breads, or bread boxes with airflow.\n3. **Freezing Over Refrigeration**: Storing bread in the fridge causes starch retrogradation (it stales 3x faster). Slice and freeze excess loaves instead!\n4. **Maintain Sourdough Acidity**: Sourdough naturally resists mold due to lactic and acetic acids. Maintain proper fermentation times.`;
+    }
+    if (lastUserMsg.includes('temp') || lastUserMsg.includes('fridge') || lastUserMsg.includes('freezer')) {
+      return `Here are standard food safety storage standards for **${bizName}**:\n\n• **Main Refrigerators / Coolers**: Keep between **1°C and 4°C** (never above 5°C).\n• **Deep Freezers**: Keep at **-18°C or below**.\n• **Dry Pantry / Shelf Storage**: Keep cool (15°C to 21°C) with humidity below 60%.\n• **Dairy & Eggs**: Always place on interior shelves, never on door racks where temperatures fluctuate.`;
+    }
+    return `I'm right here with you! Based on your live inventory at ${bizName}, we are actively tracking ${context.totalProducts || 0} products. Feel free to ask me anything about recipe planning, shelf-life, food safety, or ingredient storage!`;
   }
 
   async checkHealth(): Promise<{ status: string; model?: string; latencyMs?: number; error?: string }> {
