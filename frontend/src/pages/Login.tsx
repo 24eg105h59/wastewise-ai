@@ -138,11 +138,11 @@ const Login = () => {
             <div className="inline-flex lg:hidden mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
               <ChefHat className="w-8 h-8" />
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2 justify-center sm:justify-start">
-              Welcome Back, Chef <span className="text-amber-400">👨‍🍳</span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Log In
             </h2>
             <p className="text-sm text-slate-400 mt-1.5">
-              Sign in to access your kitchen station and inventory copilot.
+              Welcome back! Please enter your details to sign in.
             </p>
           </div>
 
@@ -158,7 +158,7 @@ const Login = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                  Chef Email / Station ID
+                  Email
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
@@ -168,7 +168,7 @@ const Login = () => {
                     type="email"
                     required
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 text-sm transition-all shadow-inner"
-                    placeholder="chef@kitchen.com"
+                    placeholder="name@company.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -178,7 +178,7 @@ const Login = () => {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                    Kitchen Passcode
+                    Password
                   </label>
                 </div>
                 <div className="relative">
@@ -196,7 +196,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-slate-300 cursor-pointer"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -212,28 +212,28 @@ const Login = () => {
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                  <span>Opening Station...</span>
+                  <span>Logging in...</span>
                 </>
               ) : (
                 <>
-                  <span>Enter Kitchen Command</span>
+                  <span>Log In</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </button>
 
             <div className="pt-2 text-center text-xs text-slate-400">
-              New brigade member?{' '}
+              Don't have an account?{' '}
               <Link to="/register" className="font-semibold text-amber-400 hover:text-amber-300 hover:underline">
-                Enlist culinary profile here
+                Register here
               </Link>
             </div>
           </form>
 
-          {/* Footer Station Status */}
+          {/* Footer Status */}
           <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
-            <span>HD Bakers Kitchen Command</span>
-            <span>HACCP Food Safe v2.4</span>
+            <span>WasteWise Official Portal</span>
+            <span>Food & Inventory Management</span>
           </div>
 
         </div>
