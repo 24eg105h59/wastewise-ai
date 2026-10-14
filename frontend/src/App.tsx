@@ -22,15 +22,34 @@ import AdminStorage from './pages/AdminStorage';
 import StaffReportIssue from './pages/StaffReportIssue';
 import AdminStaff from './pages/AdminStaff';
 import Profile from './pages/Profile';
+import { ChefHat, Utensils } from 'lucide-react';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
 const AdminLayout = () => {
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-slate-950 text-slate-800">
       <AdminSidebar />
-      <div className="flex-1 overflow-auto">
-        <Outlet />
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-slate-50">
+        <header className="h-12 bg-white border-b border-slate-200/80 px-6 flex items-center justify-between shrink-0 shadow-xs">
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200/80 font-bold">
+              <ChefHat className="w-3.5 h-3.5 text-amber-600" />
+              HD Bakers & Kitchen
+            </span>
+            <span className="text-slate-300 hidden sm:inline">|</span>
+            <span className="text-slate-500 hidden sm:inline">Executive Kitchen Command & Zero-Waste Protocol</span>
+          </div>
+          <div className="flex items-center gap-3 text-xs">
+            <span className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 font-semibold text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Kitchen Online • HACCP Safe
+            </span>
+          </div>
+        </header>
+        <div className="flex-1 overflow-auto bg-[#f8f9fa]">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
@@ -38,10 +57,28 @@ const AdminLayout = () => {
 
 const StaffLayout = () => {
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-slate-950 text-slate-800">
       <StaffSidebar />
-      <div className="flex-1 overflow-auto">
-        <Outlet />
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-slate-50">
+        <header className="h-12 bg-white border-b border-slate-200/80 px-6 flex items-center justify-between shrink-0 shadow-xs">
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-50 text-orange-900 border border-orange-200/80 font-bold">
+              <Utensils className="w-3.5 h-3.5 text-orange-600" />
+              Prep Station & Line
+            </span>
+            <span className="text-slate-300 hidden sm:inline">|</span>
+            <span className="text-slate-500 hidden sm:inline">HD Bakers Brigade Duty</span>
+          </div>
+          <div className="flex items-center gap-3 text-xs">
+            <span className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 font-semibold text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Station Active
+            </span>
+          </div>
+        </header>
+        <div className="flex-1 overflow-auto bg-[#f8f9fa]">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

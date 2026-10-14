@@ -53,58 +53,62 @@ const AdminDashboard = () => {
     <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Good morning, {user?.name?.split(' ')[0] || 'Admin'} 👋</h1>
-          <p className="text-gray-500 mt-2 text-lg">Is my business safe, and what needs my attention right now?</p>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+            Good morning, Chef {user?.name?.split(' ')[0] || 'Executive'} 👨‍🍳
+          </h1>
+          <p className="text-gray-500 mt-2 text-lg">Kitchen Command • HD Bakers Artisanal Pantry & Station Status</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={() => navigate('/admin/scanner')} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-            Scan Document
+          <button onClick={() => navigate('/admin/scanner')} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors shadow-xs">
+            Scan Ingredient / Invoice
           </button>
           <button 
             onClick={() => downloadAuditReport(inventory, [], 'HD Bakers')}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-sm"
+            className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm cursor-pointer"
           >
-            <TrendingUp size={18} /> Download Report
+            <TrendingUp size={18} /> Download Kitchen Report
           </button>
         </div>
       </div>
 
       {/* Today's AI Briefing */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 shadow-lg shadow-slate-900/20 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-amber-500/20 rounded-2xl p-6 shadow-xl shadow-slate-900/30 text-white relative overflow-hidden">
         <div className="absolute -right-10 -top-10 opacity-10">
           <ShieldAlert size={200} />
         </div>
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-blue-500/20 p-2 rounded-lg">
-              <Bot size={24} className="text-blue-400" />
+            <div className="bg-amber-500/20 border border-amber-500/30 p-2 rounded-lg">
+              <Bot size={24} className="text-amber-400" />
             </div>
-            <h2 className="text-xl font-bold">Today's AI Briefing</h2>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              Today's Culinary AI Briefing <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">CHEF ADVISORY</span>
+            </h2>
           </div>
           
           <div className="space-y-3 mb-6">
             <p className="flex items-center gap-2 text-red-200">
               <AlertCircle size={18} className="text-red-400" /> 
-              <strong>{expired.length} products</strong> have expired
+              <strong>{expired.length} ingredients</strong> have passed expiration & need disposal
             </p>
             <p className="flex items-center gap-2 text-orange-200">
               <AlertTriangle size={18} className="text-orange-400" /> 
-              <strong>{expiringSoon.length} products</strong> expire within 7 days
+              <strong>{expiringSoon.length} ingredients</strong> reach shelf-life within 7 days (prioritize in prep)
             </p>
             <p className="flex items-center gap-2 text-yellow-200">
               <ShieldAlert size={18} className="text-yellow-400" /> 
-              <strong>{highRisk.length} packaging issues</strong> require inspection
+              <strong>{highRisk.length} packaging/quality issues</strong> require sous chef inspection
             </p>
             <p className="flex items-center gap-2 text-slate-300">
               <TrendingDown size={18} className="text-slate-400" /> 
-              <strong>Vegetables</strong> generated the most waste this week.
+              <strong>Fresh Produce & Dairy</strong> generated the primary trim/spoilage this week.
             </p>
           </div>
           
-          <div className="bg-blue-900/40 border border-blue-500/30 rounded-xl p-4 inline-block">
-            <p className="text-blue-100 flex items-center gap-2">
-              <span className="font-bold text-white flex items-center gap-1"><CheckCircle2 size={16} className="text-green-400"/> AI Recommendation:</span> 
-              Prioritize dairy and fresh produce today to minimize immediate waste risks.
+          <div className="bg-amber-950/40 border border-amber-500/30 rounded-xl p-4 inline-block">
+            <p className="text-amber-100 flex items-center gap-2 text-sm">
+              <span className="font-bold text-white flex items-center gap-1.5"><CheckCircle2 size={16} className="text-amber-400"/> AI Copilot Recipe Advisory:</span> 
+              Incorporate nearing-expiry dairy, fruits, or sourdough starter into today's bakery specials to achieve zero waste.
             </p>
           </div>
         </div>

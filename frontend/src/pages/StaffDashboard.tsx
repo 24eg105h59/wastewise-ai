@@ -43,21 +43,23 @@ const StaffDashboard = () => {
   return (
     <div className="p-4 sm:p-8 max-w-5xl mx-auto space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Hello, {user?.name?.split(' ')[0] || 'Staff'} 👋</h1>
-        <p className="text-gray-500 mt-2 text-lg">What do you need to do right now?</p>
+        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          Bonjour, Sous Chef {user?.name?.split(' ')[0] || 'Chef'} 👨‍🍳
+        </h1>
+        <p className="text-gray-500 mt-2 text-lg">HD Bakers Prep Station • Line Inspections & Daily Duty</p>
       </div>
 
       {/* Primary Action */}
       <button 
         onClick={() => navigate('/staff/scanner')}
-        className="w-full bg-blue-600 text-white rounded-2xl p-8 flex flex-col items-center justify-center gap-4 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
+        className="w-full bg-gradient-to-r from-orange-600 via-amber-600 to-amber-700 text-white rounded-2xl p-8 flex flex-col items-center justify-center gap-4 hover:from-orange-500 hover:to-amber-600 transition-all shadow-xl shadow-orange-600/20 cursor-pointer group"
       >
-        <div className="bg-white/20 p-4 rounded-full">
+        <div className="bg-white/20 p-4 rounded-full group-hover:scale-110 transition-transform">
           <Camera size={48} className="text-white" />
         </div>
         <div className="text-center">
-          <h2 className="text-3xl font-bold">Scan Product</h2>
-          <p className="text-blue-100 mt-2 font-medium">Use AI to extract expiry & detect issues</p>
+          <h2 className="text-3xl font-bold">Scan Ingredient / Delivery</h2>
+          <p className="text-amber-100 mt-2 font-medium">Use Vision AI to inspect fresh stock, expiry & quality</p>
         </div>
       </button>
 
