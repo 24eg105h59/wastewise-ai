@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ChefHat, Utensils, UtensilsCrossed, Sparkles, ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, Flame } from 'lucide-react';
+import { ChefHat, UtensilsCrossed, Sparkles, ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowRight, Flame } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -9,7 +9,6 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -44,18 +43,6 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const applyDemoCredentials = (role: 'ADMIN' | 'STAFF') => {
-    setSelectedPreset(role);
-    if (role === 'ADMIN') {
-      setEmail('admin@hdbakers.com');
-      setPassword('demo123');
-    } else {
-      setEmail('staff@hdbakers.com');
-      setPassword('demo123');
-    }
-    setError('');
   };
 
   return (
@@ -159,48 +146,6 @@ const Login = () => {
             </p>
           </div>
 
-          {/* Quick Demo Login Credentials Bar (Viva Ready!) */}
-          <div className="bg-slate-950/80 border border-amber-500/30 rounded-2xl p-4 shadow-inner">
-            <div className="flex items-center justify-between mb-2.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" /> 1-Click Station Demo
-              </span>
-              <span className="text-[11px] text-slate-400">For Viva & Reviewers</span>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={() => applyDemoCredentials('ADMIN')}
-                className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all ${
-                  selectedPreset === 'ADMIN'
-                    ? 'bg-amber-500/20 border-amber-400 text-white shadow-sm'
-                    : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:border-amber-500/40 hover:bg-slate-800/90'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
-                  <ChefHat className="w-3.5 h-3.5" /> Head Chef (Admin)
-                </div>
-                <span className="text-[11px] text-slate-400 mt-0.5 truncate w-full">admin@hdbakers.com</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => applyDemoCredentials('STAFF')}
-                className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all ${
-                  selectedPreset === 'STAFF'
-                    ? 'bg-amber-500/20 border-amber-400 text-white shadow-sm'
-                    : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:border-amber-500/40 hover:bg-slate-800/90'
-                }`}
-              >
-                <div className="flex items-center gap-1.5 text-xs font-bold text-orange-300">
-                  <Utensils className="w-3.5 h-3.5" /> Sous Chef (Staff)
-                </div>
-                <span className="text-[11px] text-slate-400 mt-0.5 truncate w-full">staff@hdbakers.com</span>
-              </button>
-            </div>
-          </div>
-
           {/* Form */}
           <form className="space-y-5" onSubmit={handleLogin}>
             {error && (
@@ -235,9 +180,6 @@ const Login = () => {
                   <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
                     Kitchen Passcode
                   </label>
-                  <span className="text-xs text-amber-400/80 hover:text-amber-300 cursor-pointer">
-                    Demo: demo123
-                  </span>
                 </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
