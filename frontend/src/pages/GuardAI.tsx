@@ -15,7 +15,7 @@ const GuardAI = () => {
     {
       id: 1,
       sender: 'ai',
-      text: `Hello ${user?.name?.split(' ')[0] || 'there'}! 👋 I'm **Guide AI (GuardAI)**, powered by Google Gemini.\n\nI can chat with you like a human partner, provide live inventory briefings, answer food safety questions, or solve any operational problem at HD Bakers.\n\nWhat would you like to discuss today? Try saying *"Hi, what's new?"*`,
+      text: `Hello ${user?.name?.split(' ')[0] || 'there'}! 👋 I'm **Guide AI** for HD Bakers.\n\nAsk me anything about food safety, inventory, or kitchen tasks!`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);

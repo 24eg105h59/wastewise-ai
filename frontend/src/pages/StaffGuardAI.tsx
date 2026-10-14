@@ -13,7 +13,7 @@ const StaffGuardAI = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { 
       role: 'assistant', 
-      content: `Hey ${user?.name?.split(' ')[0] || 'there'}! 👋 I'm your **Guide AI** assistant for HD Bakers.\n\nI can help you check expiring products, explain where items are stored, guide prep rotations, or answer any kitchen questions you have during your shift.\n\nSay hello, ask *"what's new?"*, or ask me anything you need help with!`,
+      content: `Hey ${user?.name?.split(' ')[0] || 'there'}! 👋 I'm your **Guide AI** assistant for HD Bakers.\n\nAsk me about ingredient storage, prep rotations, or shift tasks!`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);

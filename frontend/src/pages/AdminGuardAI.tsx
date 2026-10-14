@@ -13,7 +13,7 @@ const AdminGuardAI = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { 
       role: 'assistant', 
-      content: `Hello ${user?.name?.split(' ')[0] || 'Admin'}! 👋 I'm **Guide AI (GuardAI)**, your live Gemini-powered operations and inventory co-pilot for **HD Bakers**.\n\nI'm connected to your live inventory, expiry alerts, and staff task board. I can chat with you like a human partner, provide live business briefings, or solve food safety, kitchen, and bakery problems.\n\nHow can I help you today? Try saying *"Hi, what's new?"* or asking about inventory recommendations!`,
+      content: `Hello ${user?.name?.split(' ')[0] || 'Admin'}! 👋 I'm **Guide AI**, your operations co-pilot for **HD Bakers**.\n\nAsk me anything, check what's new, or let me solve any kitchen problem for you!`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
